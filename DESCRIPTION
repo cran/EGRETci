@@ -1,7 +1,7 @@
 Package: EGRETci
 Type: Package
 Title: Exploration and Graphics for RivEr Trends Confidence Intervals
-Version: 2.0.2
+Version: 2.0.3
 Authors@R: c(person("Laura", "DeCicco", role = c("aut","cre"),
     email = "ldecicco@usgs.gov",
     comment=c(ORCID="0000-0002-3915-9487")),
@@ -35,10 +35,10 @@ Copyright: This software is in the public domain because it contains
         http://www.usgs.gov/visual-id/credit_usgs.html#copyright
 RoxygenNote: 6.1.1
 NeedsCompilation: no
-Packaged: 2019-02-12 14:16:05 UTC; ldecicco
+Packaged: 2019-03-14 22:12:01 UTC; ldecicco
 Author: Laura DeCicco [aut, cre] (<https://orcid.org/0000-0002-3915-9487>),
   Robert Hirsch [aut] (<https://orcid.org/0000-0002-4534-075X>),
   Jennifer Murphy [ctb]
 Maintainer: Laura DeCicco <ldecicco@usgs.gov>
 Repository: CRAN
-Date/Publication: 2019-02-12 14:50:10 UTC
+Date/Publication: 2019-03-15 05:17:35 UTC
