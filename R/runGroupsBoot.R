@@ -3,20 +3,34 @@
 #' 
 #' This function that does the uncertainty analysis for determining the change 
 #' between two groups of years.  The process is virtually 
-#' identical to what is used for \code{\link{runPairsBoot}}.  
+#' identical to what is used for \code{\link{runPairsBoot}} which looks at a change
+#' between a pair of years.  
 #' 
 #' @param eList named list with at least the Daily, Sample, and INFO dataframes
 #' @param groupResults data frame returned from \code{\link[EGRET]{runGroups}}
 #' @param nBoot the maximum number of bootstrap replicates to be used, typically 100
 #' @param blockLength days, typically 200 is a good choice
 #' @param startSeed setSeed value. Defaults to 494817. This is used to make repeatable output.
-#' @export
-#' @return eBoot, a named list with bootOut,wordsOut,xConc,xFlux values. bootOut is a data frame with the results
-#' of the bootstrapping tests. wordsOut is a character vector describing the results.
-#' xConc, xFlux are vectors of length iBoot, of the change in flow normalized concentration or flux 
-#' computed by each bootstrap replicate (mg/L). pConc and pFlux are vectors of length iBoot, of the change 
-#' in flow normalized concentration or flux computed from each bootstrap replicate expressed as % change. 
+#' @param jitterOn logical, if TRUE, adds "jitter" to the data in an attempt to avoid some numerical problems.
+#'   Default = FALSE.  See Details below.
+#' @param V numeric a multiplier for addition of jitter to the data, default = 0.2.
+#' @return eBoot, a named list with bootOut, wordsOut, xConc, xFlux, pConc, pFlux values.
+#' \itemize{
+#'   \item{bootOut is a data frame with the results of the bootstrap test.}
+#'   \item{wordsOut is a character vector describing the results.}
+#'   \item{xConc and xFlux are vectors of length iBoot, of the change in flow normalized concentration
+#'    and flow normalized flux computed from each of the bootstrap replicates.}
+#'   \item{pConc and pFlux are vectors of length iBoot, of the change in flow normalized concentration
+#'    or flow normalized flux computed from each of the bootstrap replicates expressed as \% change.}
+#'}
 #' @seealso \code{\link{runPairsBoot}}, \code{\link[EGRET]{runGroups}}
+#' @export
+#' @details
+#' In some situations numerical problems are encountered in the bootstrap process, resulting in highly unreasonable spikes in the confidence intervals.
+#' The use of "jitter" can often prevent these problems, but should only be used when it is clearly needed.
+#' It adds a small amount of random "jitter" to the explanatory variables of the WRTDS model.  The V parameter sets the scale of variation in the log discharge values.
+#' The standard deviation of the added jitter is V * standard deviation of Log Q.
+#' The default for V is 0.2.  Larger values should generally be avoided, and smaller values may be sufficient.
 #' @examples 
 #' library(EGRET)
 #' eList <- Choptank_eList
@@ -37,7 +51,8 @@
 #' plotHistogramTrend(eList, boot_group_out, caseSetUp=NA)
 #' }
 runGroupsBoot <- function (eList, groupResults, nBoot = 100, 
-                  startSeed = 494817, blockLength = 200){
+                           startSeed = 494817, blockLength = 200,
+                           jitterOn = FALSE, V = 0.2){
   interactive <- FALSE
   localINFO <- eList$INFO
   localDaily <- eList$Daily
@@ -106,32 +121,37 @@ runGroupsBoot <- function (eList, groupResults, nBoot = 100,
   LFluxDiff <- log(groupResults$x22[2]) - log(groupResults$x11[2])
   fcc <- format(regDeltaConc, digits = 3, width = 7)
   ffc <- format(regDeltaFlux, digits = 3, width = 8)
-                       
+  
   nBootGood <- 0
   
   for (iBoot in 1:(2 * nBoot)) {
+    
+    
     bootSample <- blockSample(localSample = localSample, 
                               blockLength = blockLength, startSeed = startSeed + iBoot)
+    
+    if(jitterOn) bootSample <- jitterSam(bootSample, V = V)
+    
     eListBoot <- suppressMessages(EGRET::as.egret(localINFO, localDaily, bootSample,NA))
-
+    
     if(wall) {
       possibleError <- tryCatch(surfaces <- suppressMessages(EGRET::stitch(eListBoot, surfaceStart = surfaceStart, surfaceEnd = surfaceEnd,
-                         sample1StartDate = sample1StartDate, sample1EndDate = sample1EndDate,
-                         sample2StartDate = sample2StartDate, sample2EndDate = sample2EndDate,
-                         windowY = windowY, windowQ = windowQ, windowS = windowS,
-                         minNumObs = minNumObs, minNumUncen = minNumUncen, edgeAdjust = edgeAdjust)), 
-                         error = function(e) e)
+                                                                           sample1StartDate = sample1StartDate, sample1EndDate = sample1EndDate,
+                                                                           sample2StartDate = sample2StartDate, sample2EndDate = sample2EndDate,
+                                                                           windowY = windowY, windowQ = windowQ, windowS = windowS,
+                                                                           minNumObs = minNumObs, minNumUncen = minNumUncen, edgeAdjust = edgeAdjust)), 
+                                error = function(e) e)
     } else {
       possibleError <- tryCatch(surfaces <- EGRET::estSurfaces(eListBoot, surfaceStart = surfaceStart, surfaceEnd = surfaceEnd,
-                              windowY = windowY, windowQ = windowQ, windowS = windowS,
-                              minNumObs = minNumObs, minNumUncen = minNumUncen, edgeAdjust = edgeAdjust),
-                              error = function(e) e)
+                                                               windowY = windowY, windowQ = windowQ, windowS = windowS,
+                                                               minNumObs = minNumObs, minNumUncen = minNumUncen, edgeAdjust = edgeAdjust),
+                                error = function(e) e)
     }
     if (!inherits(possibleError, "error") ) {
       eListS <- suppressMessages(EGRET::as.egret(eListBoot$INFO, eListBoot$Daily, eListBoot$Sample, surfaces))
       eListOut <- suppressMessages(EGRET::flexFN(eListS, dateInfo, flowNormStartCol = "flowNormStart", 
-                         flowNormEndCol = "flowNormEnd", flowStartCol = "flowStart", 
-                         flowEndCol = "flowEnd"))
+                                                 flowNormEndCol = "flowNormEnd", flowStartCol = "flowStart", 
+                                                 flowEndCol = "flowEnd"))
       eListOut$INFO$wall <- wall
       eListOut$INFO$surfaceStart <- surfaceStart
       eListOut$INFO$surfaceEnd <- surfaceEnd
@@ -165,7 +185,7 @@ runGroupsBoot <- function (eList, groupResults, nBoot = 100,
       }
     } 
   }
-
+  
   if (iBoot == 2 * nBoot) {
     message(iBoot, " iterations were run. They only achieved ", 
             nBootGood, " sucessful runs.")
@@ -269,5 +289,7 @@ runGroupsBoot <- function (eList, groupResults, nBoot = 100,
   attr(groupBootOut, "group1lastYear") <- group1lastYear
   attr(groupBootOut, "group2firstYear") <- group2firstYear
   attr(groupBootOut, "group2lastYear") <- group2lastYear
+  attr(groupBootOut, "paStart") <- paStart
+  attr(groupBootOut, "paLong") <- paLong
   return(groupBootOut)
 }

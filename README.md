@@ -1,12 +1,4 @@
-# EGRETci
-
-[![CRAN version](http://www.r-pkg.org/badges/version/EGRETci)](https://cran.r-project.org/package=EGRETci)
-[![](http://cranlogs.r-pkg.org/badges/EGRETci)](https://cran.r-project.org/package=EGRETci)
-[![](http://cranlogs.r-pkg.org/badges/grand-total/EGRETci)](https://cran.r-project.org/package=EGRETci)
-[![travis](https://travis-ci.org/USGS-R/EGRETci.svg?branch=master)](https://travis-ci.org/USGS-R/EGRETci)
-[![Coverage Status](https://coveralls.io/repos/github/USGS-R/EGRETci/badge.svg?branch=master)](https://coveralls.io/github/USGS-R/EGRETci?branch=master)
-[![status](https://img.shields.io/badge/USGS-Research-blue.svg)](https://owi.usgs.gov/R/packages.html#research)
-[![Research software impact](http://depsy.org/api/package/cran/EGRETci/badge.svg)](http://depsy.org/package/r/EGRETci)
+# EGRETci 
 
 This package **EGRETci** implements a set of approaches to the analysis of uncertainty associated with WRTDS trend analysis as implemented in the **EGRET** package.
 

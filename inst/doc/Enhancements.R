@@ -1,4 +1,4 @@
-## ----setup, echo = FALSE, message=FALSE----------------------------------
+## ----setup, echo = FALSE, message=FALSE-------------------
 
 library(knitr)
 
@@ -8,7 +8,7 @@ knitr::opts_chunk$set(echo = TRUE,
                       fig.width=7, fig.height=7)
 
 
-## ----eval=FALSE----------------------------------------------------------
+## ----eval=FALSE-------------------------------------------
 #  nCores <- detectCores() - coreOut
 #  cl <- makeCluster(nCores)
 #  registerDoParallel(cl)
@@ -20,14 +20,7 @@ knitr::opts_chunk$set(echo = TRUE,
 #  stopCluster(cl)
 #  
 
-## ---- echo = FALSE-------------------------------------------------------
-library(EGRET)
-library(EGRETci)
-eList <- Choptank_eList
-pairResults2 <- readRDS("pairResults2.rds")
-
-
-## ----setupData, eval=FALSE-----------------------------------------------
+## ----setupData, eval=FALSE--------------------------------
 #  library(EGRET)
 #  library(EGRETci)
 #  eList <- Choptank_eList
@@ -40,31 +33,40 @@ pairResults2 <- readRDS("pairResults2.rds")
 #                           paStart = 4, paLong = 5)
 #  
 
-## ------------------------------------------------------------------------
-bootPairOut2 <- runPairsBoot(eList, 
-                             pairResults2, 
-                             nBoot = 10) 
+## ---- echo = FALSE----------------------------------------
+library(EGRET)
+library(EGRETci)
+eList <- Choptank_eList
+pairResults2 <- readRDS("pairResults2.rds")
 
-## ----eval=FALSE----------------------------------------------------------
+## ----echo=TRUE, eval=FALSE--------------------------------
+#  bootPairOut2 <- runPairsBoot(eList,
+#                               pairResults2,
+#                               nBoot = 10)
+
+## ----eval=FALSE-------------------------------------------
 #  plotHistogramTrend(eList, eBoot, caseSetUp = NA,
 #                     flux = TRUE, xMin = NA, xMax = NA,
 #                     xStep = NA, printTitle = TRUE,
 #                     cex.main = 1.1, cex.axis = 1.1,
 #                     cex.lab = 1.1, col.fill = "grey", ...)
 
-## ---- echo = FALSE-------------------------------------------------------
+## ---- echo = FALSE----------------------------------------
 bootPairOut2 <- readRDS("bootPairOut2.rds")
 
-## ------------------------------------------------------------------------
+## ---- echo = TRUE, eval=FALSE-----------------------------
+#  bootPairOut2 <- runPairsBoot(eList, pairResults2, nBoot = 100)
+
+## ---------------------------------------------------------
 plotHistogramTrend(eList,bootPairOut2, caseSetUp = NA)
 plotHistogramTrend(eList,bootPairOut2, caseSetUp = NA, flux = FALSE)
 
-## ----eval=FALSE----------------------------------------------------------
+## ----eval=FALSE-------------------------------------------
 #  CIAnnualResults <- ciCalculations(eList,
 #                                    startSeed = 494817,
 #                                    verbose = TRUE, ...)
 
-## ----setupSeries, eval=FALSE---------------------------------------------
+## ----setupSeries, eval=FALSE------------------------------
 #  eList <- Choptank_eList
 #  eListOut <- runSeries(eList, windowSide = 7, verbose = FALSE)
 #  CIAnnualResults <- ciCalculations(eListOut,
@@ -73,22 +75,22 @@ plotHistogramTrend(eList,bootPairOut2, caseSetUp = NA, flux = FALSE)
 #                                    blockLength = 200,
 #                                    widthCI = 90)
 
-## ---- echo = FALSE-------------------------------------------------------
+## ---- echo = FALSE----------------------------------------
 CIAnnualResults <- readRDS("CIAnnualResults.rds")
 eListOut <- readRDS("eListOutSeries.rds")
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE----------------------------------------
 #  CIAnnualResults <- ciCalculations(eListOut,
 #                                    verbose = FALSE,
 #                                    nBoot = 100,
 #                                    blockLength = 200,
 #                                    widthCI = 90)
 
-## ------------------------------------------------------------------------
+## ---------------------------------------------------------
 plotConcHistBoot(eListOut, CIAnnualResults)
 plotFluxHistBoot(eListOut, CIAnnualResults)
 
-## ---- echo = TRUE, eval=FALSE--------------------------------------------
+## ---- echo = TRUE, eval=FALSE-----------------------------
 #  eList <- Choptank_eList
 #  groupResults <- runGroups(eList,
 #                            group1firstYear = 1995, group1lastYear = 2004,
@@ -99,21 +101,22 @@ plotFluxHistBoot(eListOut, CIAnnualResults)
 #  bootGroupsOut <- runGroupsBoot(eList, groupResults, nBoot = 100)
 #  
 
-## ---- eval = TRUE, echo=FALSE--------------------------------------------
+## ---- eval = TRUE, echo=FALSE-----------------------------
 groupResults <- readRDS("groupResults.rds")
 bootGroupsOut <- readRDS("bootGroupsOut.rds")
 
-## ----eval=FALSE----------------------------------------------------------
+## ----eval = FALSE-----------------------------------------
 #  plotHistogramTrend(eList, eBoot, flux = TRUE,
 #                           xMin = NA, xMax = NA, xStep = NA,
 #                           printTitle = TRUE, cex.main = 1.1,
 #                           cex.axis = 1.1, cex.lab = 1.1,
-#                           col.fill = "grey", ...)
+#                           col.fill = "grey")
 
-## ----eval=FALSE----------------------------------------------------------
-#  plotHistogramTrend(eList, bootGroupsOut,
-#                     xMin = -30, xMax = 40, xStep = 10)
-#  
-#  plotHistogramTrend(eList, bootGroupsOut,
-#                     flux=FALSE, xMin = -30, xMax = 40, xStep = 10)
+## ----eval = TRUE------------------------------------------
+plotHistogramTrend(eList, bootGroupsOut, 
+                   xMin = -30, xMax = 40, xStep = 10)
+
+plotHistogramTrend(eList, bootGroupsOut, 
+                   flux=FALSE, xMin = -10,
+                   xMax = 50, xStep = 5)
 
