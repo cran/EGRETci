@@ -5,53 +5,73 @@
 \title{ciCalculations}
 \usage{
 ciCalculations(eList, startSeed = 494817, verbose = TRUE,
-  jitterOn = FALSE, V = 0.2, ...)
+  jitterOn = FALSE, V = 0.2, nBoot = 100, blockLength = 200,
+  widthCI = 90)
 }
 \arguments{
-\item{eList}{named list with at least the Daily, Sample, and INFO dataframes. Created from the EGRET package, after running \code{\link[EGRET]{modelEstimation}}.}
+\item{eList}{named list with at least the Daily, Sample, and INFO dataframes. 
+Created from the EGRET package, after running \code{\link[EGRET]{modelEstimation}}.}
 
-\item{startSeed}{setSeed value. Defaults to 494817. This is used to make repeatable output.}
+\item{startSeed}{sets the random seed value. Defaults to 494817. 
+This is used to make repeatable output.}
 
-\item{verbose}{logical specifying whether or not to display progress messag, default = TRUE}
+\item{verbose}{logical specifying whether or not to display progress message,
+default = TRUE}
 
-\item{jitterOn}{logical, if TRUE, adds "jitter" to the data in an attempt to avoid some numerical problems.  Default = FALSE.  See Details below.}
+\item{jitterOn}{logical, if TRUE, adds "jitter" to the data in an attempt to
+avoid some numerical problems.  Default = FALSE.  See Details below.}
 
-\item{V}{numeric a multiplier for addition of jitter to the data, default = 0.2.  See Details below.}
+\item{V}{numeric a multiplier for addition of jitter to the data, default = 0.2.
+See Details below.}
 
-\item{\dots}{optionally include nBoot, blockLength, or widthCI}
+\item{nBoot}{number of times the bootstrap resampling and model estimating is done.
+Default is 100, but that will take a long time. Testing should initially be done using
+a smaller number like 10.}
+
+\item{blockLength}{integer size of subset, expressed in days.  200 days has 
+been found to be a good choice.}
+
+\item{widthCI}{numeric, the width of the confidence intervals. 0.9 means the 
+confidence intervals will be calculated with 90\%.}
 }
 \value{
-CIAnnualResults a data frame with the following columns
-  Year, mean decYear value for the year being reported
-  FNConcLow, the lower confidence limit for flow normalized concentration, in mg/L
-  FNConcHigh, the upper confidence limit for flow normalized concentration, in mg/L
-  FNFluxLow, the lower confidence limit for flow normalized flux, in kg
-  FNFluxLow, the lower confidence limit for flow normalized flux, in kg
+A data frame with the following columns:
+\tabular{ll}{
+Year \tab mean decYear value for the year being reported \cr
+FNConcLow \tab the lower confidence limit for flow normalized concentration, in mg/L \cr
+FNConcHigh \tab  the upper confidence limit for flow normalized concentration, in mg/L \cr
+FNFluxLow \tab  the lower confidence limit for flow normalized flux, in kg/day \cr
+FNFluxLow \tab  the lower confidence limit for flow normalized flux, in kg/day \cr
+}
 }
 \description{
-Interactive function to calculate confidence bands for flow normalized concentration or flow normalized flux.
-  It returns the data frame CIAnnualResults, which is used as input to the functions
-  plotConcHistBoot( ), and plotFluxHistBoot( ) which produce the graphical output.
+Function to calculate confidence bands for flow-normalized concentration or 
+flow-normalized flux. It returns a data frame which is used as input to the 
+functions \code{plotConcHistBoot} and \code{plotFluxHistBoot} which produce
+the graphical output.
 }
 \details{
-In some situations numerical problems are encountered in the bootstrap process, resulting in highly unreasonable spikes in the confidence intervals.
-The use of "jitter" can often prevent these problems, but should only be used when it is clearly needed.
-It adds a small amount of random "jitter" to the explanatory variables of the WRTDS model.  The V parameter sets the scale of variation in the log discharge values.
-The standard deviation of the added jitter is V * standard deviation of Log Q.
-The default for V is 0.2.  Larger values should generally be avoided, and smaller values may be sufficient.
+In some situations numerical problems are encountered in the bootstrap process,
+resulting in highly unreasonable spikes in the confidence intervals. The use of
+"jitter" can often prevent these problems, but should only be used when it is
+clearly needed. It adds a small amount of random "jitter" to the explanatory
+variables of the WRTDS model. The V parameter sets the scale of variation in
+the log discharge values. The standard deviation of the added jitter is V * standard
+deviation of Log Q. The default for V is 0.2. Larger values should generally be avoided,
+and smaller values may be sufficient.
 
-Argument values suggested.  
-To test the code nBoot = 10 is sufficient, but for meaningful results nBoot = 100 or even nBoot = 500 are more appropriate.
-blockLength = 200
-widthCI = 90 (90\% confidence interval)
+Argument values suggested. 
+To test the code, nBoot = 10 is sufficient, but for meaningful results 
+nBoot = 100 or even nBoot = 500 are more appropriate. blockLength = 200.
+widthCI = 90 (90% confidence interval).
 }
 \examples{
 library(EGRET)
 eList <- Choptank_eList
 \dontrun{
-# If run interactively, using stationary flow normalization
-# in this format it will prompt for nBoot, blockLength and widthCI.
-# CIAnnualResults <- ciCalculations(eList)
+CIAnnualResults <- ciCalculations(eList,
+                                  nBoot = 10)
+plotConcHistBoot(eList, CIAnnualResults)
 
 # run in batch mode, using non-stationary flow normalization
 # In this example nBoot is set very small, useful for an initial trial run.

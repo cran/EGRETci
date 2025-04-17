@@ -1,8 +1,8 @@
 .onAttach <- function(libname, pkgname) {
   if (!interactive()) return()
   EGRET_version = utils::packageVersion("EGRETci")
-  packageStartupMessage("EGRET ", EGRET_version,"
-Extended Documentation: usgs-r.github.io/EGRETci")
+  packageStartupMessage("EGRETci ", EGRET_version,"
+Extended Documentation: https://doi-usgs.github.io/EGRETci/")
 }
 
 #' EGRETci package for bootstrap hypothesis tests and confidence interval analysis for WRTDS (Weighted 
@@ -18,7 +18,7 @@ Extended Documentation: usgs-r.github.io/EGRETci")
 #' that originally came from the United States Geological Survey, an agency of
 #' the United States Department of Interior. For more information, see the
 #' official USGS copyright policy at
-#' http://www.usgs.gov/visual-id/credit_usgs.html#copyright\cr
+#' \url{https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits}\cr
 #' LazyLoad: \tab yes\cr
 #' }
 #' Collection of functions to evaluate uncertainty of results from water quality analysis using 
@@ -34,9 +34,8 @@ Extended Documentation: usgs-r.github.io/EGRETci")
 #' @references Hirsch, R.M., Archfield, S.A., and De Cicco, L.A., 2015, 
 #' A bootstrap method for estimating uncertainty of water quality trends.  
 #' Environmental Modelling & Software, 73, 148-166. 
-#' \url{https://www.sciencedirect.com/science/article/pii/S1364815215300220}
-#' @keywords water-quality graphics streamflow statistics 
-NULL
+#' @keywords internal  
+"_PACKAGE"
 
 #' Interactive setup for running wBT, the WRTDS Bootstrap Test
 #'
@@ -224,7 +223,7 @@ saveEGRETci <- function(eList, eBoot, caseSetUp, fileName = ""){
 #' xConc and xFlux \tab vectors of length iBoot, of the change in flow normalized concentration
 #'    and flow normalized flux computed from each of the bootstrap replicates. \cr
 #' pConc and pFlux \tab vectors of length iBoot, of the change in flow normalized concentration
-#'    or flow normalized flux computed from each of the bootstrap replicates expressed as % change. \cr
+#'    or flow normalized flux computed from each of the bootstrap replicates expressed as \% change. \cr
 #' } 
 #' 
 #' @seealso \code{\link{trendSetUp}}, \code{\link{setForBoot}}, \code{\link{runGroupsBoot}}, \code{\link{runPairsBoot}}
@@ -245,6 +244,8 @@ wBT<-function(eList, caseSetUp,
               fileName = "temp.txt", startSeed = 494817,
               jitterOn = FALSE, V = 0.2){
   
+  message("runPairs/runPairsBoot is recommended over the wBT function.")
+  
   #   This is the version of wBT that includes the revised calculation of the 
   #    two-sided p-value, added 16Jul2015, RMHirsch
   #
@@ -253,18 +254,7 @@ wBT<-function(eList, caseSetUp,
   localDaily <- eList$Daily
   localSample <- eList$Sample
   prob = c(0.025, 0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95, 0.975)
-  words <- function(z) {
-    out <- if (z) 
-      "Reject Ho"
-    else "Do Not Reject Ho"
-    return(out)
-  }
-  bootOut <- as.data.frame(matrix(ncol = 25, nrow = 1))
-  colnames(bootOut) <- c("rejectC", "pValC", "estC", "lowC90", 
-                         "upC90", "lowC50", "upC50", "lowC95", "upC95", "likeCUp", 
-                         "likeCDown", "rejectF", "pValF", "estF", "lowF90", "upF90", 
-                         "lowF50", "upF50", "lowF95", "upF95", "likeFUp", "likeFDown", 
-                         "baseConc", "baseFlux", "iBoot")
+
   year1 <- caseSetUp$year1
   yearData1 <- caseSetUp$yearData1
   year2 <- caseSetUp$year2
@@ -365,7 +355,7 @@ wBT<-function(eList, caseSetUp,
                                 blockLength = blockLength,
                                 startSeed = startSeed + iBoot)
       
-      if(jitterOn) bootSample <- jitterSam(bootSample, V = V)
+      if(jitterOn) bootSample <- EGRET::jitterSam(bootSample, V = V)
       
       eListBoot <- suppressMessages(EGRET::as.egret(localINFO, localDaily, bootSample, NA))
       possibleError3 <- tryCatch(surfaces1 <- estSliceSurfacesSimpleAlt(eListBoot, 
@@ -652,6 +642,17 @@ estSliceSurfacesSimpleAlt <- function(eList,year){
   
   return(surfaces)
 }
+
+#' Create a paVector
+#' 
+#' Internal doc for paVector
+#' 
+#' @export
+#' @keywords internal 
+#' @param year description
+#' @param paStart description
+#' @param paLong description
+#' @param vectorYear description
 
 paVector <- function(year,paStart,paLong, vectorYear){
   

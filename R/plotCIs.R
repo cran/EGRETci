@@ -75,21 +75,40 @@ plotConcHistBoot <- function (eList, CIAnnualResults, yearStart = NA, yearEnd = 
   title <- paste(eList$INFO$shortName, " ", eList$INFO$paramShortName, 
                  "\n", periodName, "\n",title3)
   
+  dataStart <- min(eList$Sample$DecYear, na.rm = TRUE)
+  dataStartPad <- dataStart - 0.5
+  
+  if(is.na(yearStart)){
+    yearStart <- dataStartPad
+  } else {
+    yearStart <- max(yearStart, dataStartPad)
+    
+  }
+  
+  dataEnd <- max(eList$Sample$DecYear, na.rm = TRUE)
+  dataEndPad <- dataEnd + 0.5
+  
+  if(is.na(yearEnd)){
+    yearEnd <- dataEndPad
+  } else {
+    yearEnd <- min(yearEnd, dataEndPad)
+  }
+  
   if(is.na(concMax)){
     numYears <- length(localAnnualResults$DecYear)
     
     subAnnualResults <- localAnnualResults[localAnnualResults$DecYear>=yearStart & localAnnualResults$DecYear <= yearEnd,]
     
-    if(is.na(yearStart)){
-      yearStart <- min(localAnnualResults$DecYear[!is.na(localAnnualResults$FNConc)], na.rm = TRUE)
-    }
-    
-    if(is.na(yearEnd)){
-      yearEnd <- max(localAnnualResults$DecYear[!is.na(localAnnualResults$FNConc)], na.rm = TRUE)
-    }
-    
     annConc <- subAnnualResults$Conc
-    concMax <- 1.05*max(c(CIAnnualResults$FNConcHigh,annConc), na.rm=TRUE)
+    if(plotGenConc){
+      concMax <- 1.05*max(c(CIAnnualResults$FNConcHigh,
+                            annConc,
+                            subAnnualResults$GenConc), na.rm=TRUE)
+    } else {
+      concMax <- 1.05*max(c(CIAnnualResults$FNConcHigh,
+                            annConc), na.rm=TRUE)      
+    }
+
   }
   
   EGRET::plotConcHist(eList, yearStart = yearStart, yearEnd = yearEnd,
@@ -129,7 +148,7 @@ plotConcHistBoot <- function (eList, CIAnnualResults, yearStart = NA, yearEnd = 
 #' @param yearEnd numeric is the calendar year just after the last estimated annual value to be plotted, default is NA (which allows it to be set automatically by the data).
 #' @param plotFlowNorm logical variable if TRUE flow normalized flux line is plotted, if FALSE not plotted, default is TRUE. 
 #' @param col.pred character color of line for flow-normalized flux and for the confidence limits, default is "green".
-#' @param fluxUnit integer representing entry in pre-defined fluxUnit class array. \code{\link{printFluxUnitCheatSheet}}
+#' @param fluxUnit integer representing entry in pre-defined fluxUnit class array. \code{\link[EGRET]{printFluxUnitCheatSheet}}
 #' @param fluxMax numeric specifying the maximum value to be used on the vertical axis, default is NA (which allows it to be set automatically by the data), uses units specificed by fluxUnit. 
 #' @param plotAnnual logical variable if \code{TRUE}, annual mean flux points from WRTDS output are plotted, if \code{FALSE} not plotted. 
 #' @param plotGenFlux logical variable. If \code{TRUE}, annual mean flux points from WRTDS_K output are plotted, if \code{FALSE} not plotted. 
@@ -201,17 +220,40 @@ plotFluxHistBoot <- function (eList, CIAnnualResults,
   }
   unitFactorReturn <- fluxUnit@unitFactor
   
+  dataStart <- min(eList$Sample$DecYear, na.rm = TRUE)
+  dataStartPad <- dataStart - 0.5
+  
+  if(is.na(yearStart)){
+    yearStart <- dataStartPad
+  } else {
+    yearStart <- max(yearStart, dataStartPad)
+    
+  }
+  
+  dataEnd <- max(eList$Sample$DecYear, na.rm = TRUE)
+  dataEndPad <- dataEnd + 0.5
+  
+  if(is.na(yearEnd)){
+    yearEnd <- dataEndPad
+  } else {
+    yearEnd <- min(yearEnd, dataEndPad)
+  }
+  
   if(is.na(fluxMax)){
     numYears <- length(localAnnualResults$DecYear)
-    
-    yearStart <- if(is.na(yearStart)) trunc(min(localAnnualResults$DecYear[!is.na(localAnnualResults$FNFlux)],na.rm = TRUE)) else yearStart
-    yearEnd <- if(is.na(yearEnd)) trunc(max(localAnnualResults$DecYear[!is.na(localAnnualResults$FNFlux)],na.rm = TRUE))+1 else yearEnd
     
     subAnnualResults <- localAnnualResults[localAnnualResults$DecYear>=yearStart & localAnnualResults$DecYear <= yearEnd,]
     
     annFlux <- unitFactorReturn*subAnnualResults$Flux
     
-    fluxMax <- 1.05*max(c(CIAnnualResults$FNFluxHigh*unitFactorReturn,annFlux), na.rm=TRUE)
+    if(plotGenFlux){
+      fluxMax <- 1.05*max(c(CIAnnualResults$FNFluxHigh*unitFactorReturn,
+                            annFlux,
+                            unitFactorReturn*subAnnualResults$GenFlux), na.rm=TRUE)
+    } else {
+      fluxMax <- 1.05*max(c(CIAnnualResults$FNFluxHigh*unitFactorReturn,annFlux), na.rm=TRUE)
+    }
+    
   }
   
   EGRET::plotFluxHist(eList, yearStart = yearStart, yearEnd = yearEnd,
@@ -285,7 +327,7 @@ bootAnnual <- function(eList, blockLength = 200, startSeed = 494817,
   
   bootSample <- blockSample(localSample = Sample, blockLength = blockLength, startSeed = startSeed)
   
-  if(jitterOn) bootSample <- jitterSam(bootSample, V = V)
+  if(jitterOn) bootSample <- EGRET::jitterSam(bootSample, V = V)
   
   eListBoot <- EGRET::as.egret(INFO,Daily,bootSample,NA)
   
@@ -369,7 +411,7 @@ bootAnnual <- function(eList, blockLength = 200, startSeed = 494817,
 #' }
 #' 
 #' CIAnnualResults <- ciBands(eList, repAnnualResults)
-#' 
+#' plotConcHistBoot(eList, CIAnnualResults)
 #' }
 #' 
 ciBands <- function(eList, repAnnualResults, probs = c(0.05, 0.95)){
@@ -392,16 +434,26 @@ ciBands <- function(eList, repAnnualResults, probs = c(0.05, 0.95)){
   }
   
   AnnualResults <- EGRET::setupYears(eList$Daily, paLong = paLong, paStart=paStart)
+  AnnualResults$year <- as.integer(AnnualResults$DecYear)
+  names(AnnualResults)[which(names(AnnualResults) %in% c("FNFlux"))] <- c("FNFlux_1")
+  names(AnnualResults)[which(names(AnnualResults) %in% c("FNConc"))] <- c("FNConc_1")
   
+  AnnualResults <- AnnualResults[c("year", "DecYear", "FNFlux_1", "FNConc_1")]
   nBoot <- length(repAnnualResults)
   numYears <- nrow(repAnnualResults[[1]])
   yearStart <- repAnnualResults[[1]][1,1]
   blockLength <- attr(repAnnualResults[[1]], "blockLength")
   
   manyAnnualResults <- array(NA, dim=c(numYears,2,nBoot))
+  
   for (i in 1:nBoot){
-    manyAnnualResults[,1,i] <- 2*log(AnnualResults$FNConc) - log(repAnnualResults[[i]]$FNConc)
-    manyAnnualResults[,2,i] <- 2*log(AnnualResults$FNFlux) - log(repAnnualResults[[i]]$FNFlux)
+    message(i)
+    df_1 <- repAnnualResults[[i]]
+    df_1 <- merge(df_1, 
+                  AnnualResults, by = "year", all = TRUE)
+    
+    manyAnnualResults[,1,i] <- 2*log(df_1$FNConc_1) - log(df_1$FNConc)
+    manyAnnualResults[,2,i] <- 2*log(df_1$FNFlux_1) - log(df_1$FNFlux)
   }
   
   CIAnnualResults <- data.frame(matrix(ncol = 5, nrow = numYears))
@@ -480,7 +532,7 @@ ciBands <- function(eList, repAnnualResults, probs = c(0.05, 0.95)){
 #' plotHistogramTrend(eList, boot_pair_out, caseSetUp = NA, 
 #'                    flux = TRUE, xMin = -20, xMax = 60, xStep = 5)          
 #' }
-plotHistogramTrend <- function (eList, eBoot, caseSetUp, 
+plotHistogramTrend <- function (eList, eBoot, caseSetUp = NA, 
                                 flux = TRUE, xMin = NA, xMax = NA, xStep = NA, 
                                 printTitle=TRUE, cex.main=1.1, cex.axis = 1.1, cex.lab = 1.1, col.fill="grey",...){
   
@@ -573,42 +625,63 @@ plotHistogramTrend <- function (eList, eBoot, caseSetUp,
 
 #' ciCalculations
 #'
-#' Interactive function to calculate confidence bands for flow normalized concentration or flow normalized flux.
-#'   It returns the data frame CIAnnualResults, which is used as input to the functions
-#'   plotConcHistBoot( ), and plotFluxHistBoot( ) which produce the graphical output. 
+#' Function to calculate confidence bands for flow-normalized concentration or 
+#' flow-normalized flux. It returns a data frame which is used as input to the 
+#' functions \code{plotConcHistBoot} and \code{plotFluxHistBoot} which produce
+#' the graphical output.
 #'
-#' @param eList named list with at least the Daily, Sample, and INFO dataframes. Created from the EGRET package, after running \code{\link[EGRET]{modelEstimation}}.
-#' @param startSeed setSeed value. Defaults to 494817. This is used to make repeatable output.
-#' @param verbose logical specifying whether or not to display progress messag, default = TRUE
-#' @param jitterOn logical, if TRUE, adds "jitter" to the data in an attempt to avoid some numerical problems.  Default = FALSE.  See Details below.
-#' @param V numeric a multiplier for addition of jitter to the data, default = 0.2.  See Details below.  
-#' @param \dots optionally include nBoot, blockLength, or widthCI
+#' @param eList named list with at least the Daily, Sample, and INFO dataframes. 
+#' Created from the EGRET package, after running \code{\link[EGRET]{modelEstimation}}.
+#' @param startSeed sets the random seed value. Defaults to 494817. 
+#' This is used to make repeatable output.
+#' @param verbose logical specifying whether or not to display progress message,
+#'  default = TRUE
+#' @param jitterOn logical, if TRUE, adds "jitter" to the data in an attempt to
+#' avoid some numerical problems.  Default = FALSE.  See Details below.
+#' @param V numeric a multiplier for addition of jitter to the data, default = 0.2.  
+#' See Details below.  
+#' @param nBoot number of times the bootstrap resampling and model estimating is done.
+#' Default is 100, but that will take a long time. Testing should initially be done using
+#' a smaller number like 10.
+#' @param blockLength integer size of subset, expressed in days.  200 days has 
+#' been found to be a good choice.
+#' @param widthCI numeric, the width of the confidence intervals. 0.9 means the 
+#' confidence intervals will be calculated with 90\%.
+#' 
 #' @export
-#' @return CIAnnualResults a data frame with the following columns
-#'   Year, mean decYear value for the year being reported
-#'   FNConcLow, the lower confidence limit for flow normalized concentration, in mg/L
-#'   FNConcHigh, the upper confidence limit for flow normalized concentration, in mg/L
-#'   FNFluxLow, the lower confidence limit for flow normalized flux, in kg
-#'   FNFluxLow, the lower confidence limit for flow normalized flux, in kg 
+#' 
+#' @return A data frame with the following columns:
+#' \tabular{ll}{
+#' Year \tab mean decYear value for the year being reported \cr
+#' FNConcLow \tab the lower confidence limit for flow normalized concentration, in mg/L \cr
+#' FNConcHigh \tab  the upper confidence limit for flow normalized concentration, in mg/L \cr
+#' FNFluxLow \tab  the lower confidence limit for flow normalized flux, in kg/day \cr
+#' FNFluxLow \tab  the lower confidence limit for flow normalized flux, in kg/day \cr
+#' }
+#' 
 #' @details
-#' In some situations numerical problems are encountered in the bootstrap process, resulting in highly unreasonable spikes in the confidence intervals.
-#' The use of "jitter" can often prevent these problems, but should only be used when it is clearly needed.
-#' It adds a small amount of random "jitter" to the explanatory variables of the WRTDS model.  The V parameter sets the scale of variation in the log discharge values.
-#' The standard deviation of the added jitter is V * standard deviation of Log Q.
-#' The default for V is 0.2.  Larger values should generally be avoided, and smaller values may be sufficient.
+#' In some situations numerical problems are encountered in the bootstrap process,
+#' resulting in highly unreasonable spikes in the confidence intervals. The use of
+#' "jitter" can often prevent these problems, but should only be used when it is
+#' clearly needed. It adds a small amount of random "jitter" to the explanatory
+#' variables of the WRTDS model. The V parameter sets the scale of variation in
+#' the log discharge values. The standard deviation of the added jitter is V * standard
+#' deviation of Log Q. The default for V is 0.2. Larger values should generally be avoided,
+#' and smaller values may be sufficient.
 #'
-#' Argument values suggested.  
-#' To test the code nBoot = 10 is sufficient, but for meaningful results nBoot = 100 or even nBoot = 500 are more appropriate.
-#' blockLength = 200
-#' widthCI = 90 (90\% confidence interval)
+#' Argument values suggested. 
+#' To test the code, nBoot = 10 is sufficient, but for meaningful results 
+#' nBoot = 100 or even nBoot = 500 are more appropriate. blockLength = 200.
+#' widthCI = 90 (90% confidence interval).
+#' 
 #' @examples
 #' library(EGRET)
 #' eList <- Choptank_eList
 #' \dontrun{
-#' # If run interactively, using stationary flow normalization
-#' # in this format it will prompt for nBoot, blockLength and widthCI.
-#' # CIAnnualResults <- ciCalculations(eList)
-#'
+#' CIAnnualResults <- ciCalculations(eList,
+#'                                   nBoot = 10)
+#' plotConcHistBoot(eList, CIAnnualResults)
+#' 
 #' # run in batch mode, using non-stationary flow normalization
 #' # In this example nBoot is set very small, useful for an initial trial run.
 #' # A meaningful application would use nBoot values such as 100 or even 500. 
@@ -621,39 +694,17 @@ plotHistogramTrend <- function (eList, eBoot, caseSetUp,
 #'  plotConcHistBoot(seriesOut_2, CIAnnualResults)
 #' 
 #' }
-ciCalculations <- function (eList, 
+ciCalculations <- function(eList, 
                             startSeed = 494817,
                             verbose = TRUE,
-                            jitterOn = FALSE, V = 0.2,
-                            ...){
-  
-  matchReturn <- list(...)
+                            jitterOn = FALSE, 
+                            V = 0.2,
+                            nBoot = 100,
+                            blockLength = 200,
+                            widthCI = 90){
   
   INFO <- eList$INFO
-  
-  if(!is.null(matchReturn$nBoot)){
-    nBoot <- matchReturn$nBoot
-  } else {
-    message("Enter nBoot, the number of bootstrap replicates to be used, typically 100")
-    nBoot <- as.numeric(readline())
-    cat("nBoot = ",nBoot," this is the number of replicates that will be run\n")
-  }
-  
-  if(!is.null(matchReturn$blockLength)){
-    blockLength <- matchReturn$blockLength
-  } else {
-    message("Enter blockLength, in days, typically 200 is a good choice")
-    blockLength <- as.numeric(readline())
-  }
-  
-  if(!is.null(matchReturn$widthCI)){
-    widthCI <- matchReturn$widthCI
-  } else {
-    message("Enter confidence interval, for example 90 represents a 90% confidence interval,")
-    message("the low and high returns are 5 and 95 % respectively")
-    widthCI <-  as.numeric(readline())
-  }
-  
+
   ciLower <- (50-(widthCI/2))/100
   ciUpper <- (50+(widthCI/2))/100
   probs <- c(ciLower,ciUpper)
@@ -698,6 +749,7 @@ ciCalculations <- function (eList,
   }
   
   for(n in 1:nBoot){
+    cat(n, "\n")
     repAnnualResults[[n]] <- bootAnnual(eList, blockLength, startSeed+n, verbose = verbose, 
                                         jitterOn = jitterOn, V = V)
   }

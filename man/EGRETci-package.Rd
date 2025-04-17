@@ -2,6 +2,7 @@
 % Please edit documentation in R/wBTCode.R
 \docType{package}
 \name{EGRETci-package}
+\alias{EGRETci}
 \alias{EGRETci-package}
 \title{EGRETci package for bootstrap hypothesis tests and confidence interval analysis for WRTDS (Weighted 
 Regressions on Time, Discharge, and Season) statistical models. This 
@@ -16,7 +17,7 @@ Copyright: \tab This software is in the public domain because it contains materi
 that originally came from the United States Geological Survey, an agency of
 the United States Department of Interior. For more information, see the
 official USGS copyright policy at
-http://www.usgs.gov/visual-id/credit_usgs.html#copyright\cr
+\url{https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits}\cr
 LazyLoad: \tab yes\cr
 }
 Collection of functions to evaluate uncertainty of results from water quality analysis using 
@@ -30,13 +31,16 @@ chap. A10, 94 p., \doi{10.3133/tm4A10}
 
 Hirsch, R.M., Archfield, S.A., and De Cicco, L.A., 2015, 
 A bootstrap method for estimating uncertainty of water quality trends.  
-Environmental Modelling & Software, 73, 148-166. 
-\url{https://www.sciencedirect.com/science/article/pii/S1364815215300220}
+Environmental Modelling & Software, 73, 148-166.
+}
+\seealso{
+Useful links:
+\itemize{
+  \item Report bugs at \url{https://github.com/DOI-USGS/EGRETci/issues}
+}
+
 }
 \author{
 Robert M. Hirsch \email{rhirsch@usgs.gov}, Laura De Cicco \email{ldecicco@usgs.gov}
 }
-\keyword{graphics}
-\keyword{statistics}
-\keyword{streamflow}
-\keyword{water-quality}
+\keyword{internal}
